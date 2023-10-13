@@ -503,7 +503,7 @@ func (s *muxerServer) generateMediaPlaylistMPEGTS() []byte {
 func (s *muxerServer) generateMediaPlaylistFMP4(isDeltaUpdate bool) []byte {
 	s.addInitialGapSegments(s.targetSegmentDuration)
 
-	targetDuration := targetDuration(s.segments)
+	targetDuration := int(math.Round(s.targetSegmentDuration.Seconds())) // targetDuration(s.segments)
 	skipBoundary := time.Duration(targetDuration) * 6 * time.Second
 
 	pl := &playlist.Media{
