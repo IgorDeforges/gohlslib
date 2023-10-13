@@ -818,11 +818,11 @@ func (s *muxerServer) generateInitFile() error {
 
 func (s *muxerServer) addInitialGapSegments(segmentDuration time.Duration) {
 	// add initial gaps, required by iOS LL-HLS
-	if s.variant == MuxerVariantLowLatency && len(s.segments) == 0 {
-		for i := 0; i < 7; i++ {
-			s.segments = append(s.segments, &muxerGap{
-				duration: segmentDuration,
-			})
-		}
-	}
+	// if s.variant == MuxerVariantLowLatency && len(s.segments) == 0 {
+	// 	for i := 0; i < 7; i++ {
+	// 		s.segments = append(s.segments, &muxerGap{
+	// 			duration: segmentDuration,
+	// 		})
+	// 	}
+	// }
 }
