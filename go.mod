@@ -1,4 +1,4 @@
-module github.com/bluenviron/gohlslib
+module github.com/IgorDeforges/gohlslib
 
 go 1.19
 
