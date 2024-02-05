@@ -92,10 +92,12 @@ type muxerSegmenterFMP4 struct {
 	segmentMinDuration time.Duration
 	partMinDuration    time.Duration
 	segmentMaxSize     uint64
+	durationRequiredPartCount uint64
 	videoTrack         *Track
 	audioTrack         *Track
 	prefix             string
 	factory            storage.Factory
+	updateInProgressSegment   func(muxerSegment)
 	publishSegment     func(muxerSegment) error
 	publishPart        func(*muxerPart) error
 
@@ -353,6 +355,7 @@ func (m *muxerSegmenterFMP4) writeVideo(
 			startNTP:       sample.ntp,
 			startDTS:       sample.dts,
 			segmentMaxSize: m.segmentMaxSize,
+			durationRequiredPartCount: m.durationRequiredPartCount,
 			videoTrack:     m.videoTrack,
 			audioTrack:     m.audioTrack,
 			audioTimeScale: m.audioTimeScale,
@@ -368,6 +371,7 @@ func (m *muxerSegmenterFMP4) writeVideo(
 			return err
 		}
 		m.currentSegment = seg
+		m.updateInProgressSegment(m.currentSegment)
 	}
 
 	m.adjustPartDuration(duration)
@@ -402,6 +406,7 @@ func (m *muxerSegmenterFMP4) writeVideo(
 			startNTP:       m.nextVideoSample.ntp,
 			startDTS:       m.nextVideoSample.dts,
 			segmentMaxSize: m.segmentMaxSize,
+			durationRequiredPartCount: m.durationRequiredPartCount,
 			videoTrack:     m.videoTrack,
 			audioTrack:     m.audioTrack,
 			audioTimeScale: m.audioTimeScale,
@@ -417,6 +422,7 @@ func (m *muxerSegmenterFMP4) writeVideo(
 			return err
 		}
 		m.currentSegment = seg
+		m.updateInProgressSegment(m.currentSegment)
 
 		if forceSwitch {
 			m.firstSegmentFinalized = false
@@ -457,6 +463,7 @@ func (m *muxerSegmenterFMP4) writeAudio(sample *augmentedSample) error {
 				startNTP:       sample.ntp,
 				startDTS:       sample.dts,
 				segmentMaxSize: m.segmentMaxSize,
+				durationRequiredPartCount: m.durationRequiredPartCount,
 				videoTrack:     m.videoTrack,
 				audioTrack:     m.audioTrack,
 				audioTimeScale: m.audioTimeScale,
@@ -509,6 +516,7 @@ func (m *muxerSegmenterFMP4) writeAudio(sample *augmentedSample) error {
 			startNTP:       m.nextAudioSample.ntp,
 			startDTS:       m.nextAudioSample.dts,
 			segmentMaxSize: m.segmentMaxSize,
+			durationRequiredPartCount: m.durationRequiredPartCount,
 			videoTrack:     m.videoTrack,
 			audioTrack:     m.audioTrack,
 			audioTimeScale: m.audioTimeScale,
