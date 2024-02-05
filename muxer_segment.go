@@ -17,6 +17,7 @@ func segmentName(prefix string, id uint64, mp4 bool) string {
 type muxerSegment interface {
 	close()
 	getName() string
+	hasDuration() bool
 	getDuration() time.Duration
 	getSize() uint64
 	isForceSwitched() bool
@@ -32,6 +33,10 @@ func (g muxerGap) close() {
 
 func (g muxerGap) getName() string {
 	return ""
+}
+
+func (g muxerGap) hasDuration() bool {
+	return true
 }
 
 func (g muxerGap) getDuration() time.Duration {

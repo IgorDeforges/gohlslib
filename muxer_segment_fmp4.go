@@ -14,6 +14,7 @@ type muxerSegmentFMP4 struct {
 	startNTP       time.Time
 	startDTS       time.Duration
 	segmentMaxSize uint64
+	durationRequiredPartCount uint64
 	videoTrack     *Track
 	audioTrack     *Track
 	audioTimeScale uint32
@@ -63,8 +64,16 @@ func (s *muxerSegmentFMP4) getName() string {
 	return s.name
 }
 
+func (s *muxerSegmentFMP4) hasDuration() bool {
+	return s.endDTS > 0 || (s.lowLatency && len(s.parts) >= int(s.durationRequiredPartCount))
+}
+
 func (s *muxerSegmentFMP4) getDuration() time.Duration {
-	return s.endDTS - s.startDTS
+	if s.endDTS > 0 {
+		return s.endDTS - s.startDTS
+	}
+
+	return s.parts[len(s.parts)-1].startDTS - s.startDTS
 }
 
 func (s *muxerSegmentFMP4) getSize() uint64 {

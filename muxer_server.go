@@ -91,9 +91,14 @@ func parseMSNPart(msn string, part string) (uint64, uint64, error) {
 	return msnint, partint, nil
 }
 
-func bandwidth(segments []muxerSegment) (int, int) {
+func bandwidth(segments []muxerSegment, inProgressSegment muxerSegment, isLowLatencyVariant bool) (int, int) {
 	if len(segments) == 0 {
-		return 0, 0
+		if isLowLatencyVariant && inProgressSegment.hasDuration() {
+			// determine bandwidth using parts of first incompleted segment
+			segments = []muxerSegment{inProgressSegment}
+		} else {
+			return 0, 0
+		}
 	}
 
 	var maxBandwidth uint64
@@ -121,8 +126,10 @@ func generateMultivariantPlaylist(
 	videoTrack *Track,
 	audioTrack *Track,
 	segments []muxerSegment,
+	inProgressSegment muxerSegment,
+	isLowLatencyVariant bool,
 ) ([]byte, error) {
-	maxBandwidth, averageBandwidth := bandwidth(segments)
+	maxBandwidth, averageBandwidth := bandwidth(segments, inProgressSegment, isLowLatencyVariant)
 	var resolution string
 	var frameRate *float64
 
@@ -279,7 +286,9 @@ func generateMediaPlaylistFMP4(
 	nextPartID uint64,
 	segmentDeleteCount int,
 	prefix string,
+	s *muxerServer,
 ) ([]byte, error) {
+    s.addInitialGapSegments(s.targetSegmentDuration)
 	targetDuration := targetDuration(segments)
 	skipBoundary := time.Duration(targetDuration) * 6 * time.Second
 
@@ -353,7 +362,9 @@ func generateMediaPlaylistFMP4(
 				}
 			}
 
-			pl.Segments = append(pl.Segments, plse)
+			if len(s.segments) > 0 {
+				pl.Segments = append(pl.Segments, plse)
+			}
 
 		case *muxerGap:
 			pl.Segments = append(pl.Segments, &playlist.MediaSegment{
@@ -391,6 +402,7 @@ func generateMediaPlaylist(
 	nextPartID uint64,
 	segmentDeleteCount int,
 	prefix string,
+	s *muxerServer,
 ) ([]byte, error) {
 	if variant == MuxerVariantMPEGTS {
 		return generateMediaPlaylistMPEGTS(
@@ -407,6 +419,7 @@ func generateMediaPlaylist(
 		nextPartID,
 		segmentDeleteCount,
 		prefix,
+		s,
 	)
 }
 
@@ -417,10 +430,12 @@ type muxerServer struct {
 	audioTrack     *Track
 	prefix         string
 	storageFactory storage.Factory
+	targetSegmentDuration time.Duration
 
 	mutex                sync.Mutex
 	cond                 *sync.Cond
 	closed               bool
+	inProgressSegment    muxerSegment
 	segments             []muxerSegment
 	segmentsByName       map[string]muxerSegment
 	segmentDeleteCount   int
@@ -457,10 +472,16 @@ func (s *muxerServer) close() {
 }
 
 func (s *muxerServer) hasContent() bool {
-	if s.variant == MuxerVariantFMP4 {
+	switch {
+	case s.variant == MuxerVariantLowLatency && len(s.segments) == 0:
+		return s.inProgressSegment != nil && s.inProgressSegment.hasDuration()
+
+	case s.variant == MuxerVariantFMP4:
 		return len(s.segments) >= 2
+
+	default:
+		return len(s.segments) >= 1
 	}
-	return len(s.segments) >= 1
 }
 
 func (s *muxerServer) hasPart(segmentID uint64, partID uint64) bool {
@@ -596,6 +617,7 @@ func (s *muxerServer) handleMediaPlaylist(msn string, part string, skip string, 
 					s.nextPartID,
 					s.segmentDeleteCount,
 					s.prefix,
+					s,
 				)
 			}()
 			if err != nil {
@@ -635,6 +657,7 @@ func (s *muxerServer) handleMediaPlaylist(msn string, part string, skip string, 
 			s.nextPartID,
 			s.segmentDeleteCount,
 			s.prefix,
+			s,
 		)
 	}()
 	if err != nil {
@@ -770,14 +793,7 @@ func (s *muxerServer) publishPart(part *muxerPart) error {
 }
 
 func (s *muxerServer) publishSegmentInner(segment muxerSegment) error {
-	// add initial gaps, required by iOS LL-HLS
-	if s.variant == MuxerVariantLowLatency && len(s.segments) == 0 {
-		for i := 0; i < 7; i++ {
-			s.segments = append(s.segments, &muxerGap{
-				duration: segment.getDuration(),
-			})
-		}
-	}
+	s.addInitialGapSegments(segment.getDuration())
 
 	s.segmentsByName[segment.getName()] = segment
 	s.segments = append(s.segments, segment)
@@ -805,7 +821,7 @@ func (s *muxerServer) publishSegmentInner(segment muxerSegment) error {
 	}
 
 	// always regenerate multivariant playlist since it contains bandwidth
-	buf, err := generateMultivariantPlaylist(s.variant, s.videoTrack, s.audioTrack, s.segments)
+	buf, err := generateMultivariantPlaylist(s.variant, s.videoTrack, s.audioTrack, s.segments, s.inProgressSegment, s.variant == MuxerVariantLowLatency)
 	if err != nil {
 		return err
 	}
@@ -840,4 +856,26 @@ func (s *muxerServer) publishSegment(segment muxerSegment) error {
 
 	s.cond.Broadcast()
 	return nil
+}
+
+func (s *muxerServer) updateInProgressSegment(segment muxerSegment) {
+	s.inProgressSegment = segment
+
+	// update nextSegmentID to support msn query param when streaming started before the first segment was completed
+	if s.nextSegmentID == 0 {
+		if seg, ok := segment.(*muxerSegmentFMP4); ok {
+			s.nextSegmentID = seg.id
+		}
+	}
+}
+
+func (s *muxerServer) addInitialGapSegments(segmentDuration time.Duration) {
+	// add initial gaps, required by iOS LL-HLS
+	if s.variant == MuxerVariantLowLatency && len(s.segments) == 0 {
+		for i := 0; i < 7; i++ {
+			s.segments = append(s.segments, &muxerGap{
+				duration: segmentDuration,
+			})
+		}
+	}
 }
