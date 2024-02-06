@@ -3,7 +3,7 @@ package playlist
 import (
 	"fmt"
 
-	"github.com/bluenviron/gohlslib/pkg/playlist/primitives"
+	"github.com/IgorDeforges/gohlslib/pkg/playlist/primitives"
 )
 
 // MultivariantRenditionType is a rendition type.

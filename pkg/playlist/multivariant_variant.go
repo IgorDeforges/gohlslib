@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/bluenviron/gohlslib/pkg/playlist/primitives"
+	"github.com/IgorDeforges/gohlslib/pkg/playlist/primitives"
 )
 
 // MultivariantVariant is a EXT-X-STREAM-INF tag.

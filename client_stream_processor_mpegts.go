@@ -12,7 +12,7 @@ import (
 
 	"github.com/bluenviron/mediacommon/pkg/formats/mpegts"
 
-	"github.com/bluenviron/gohlslib/pkg/codecs"
+	"github.com/IgorDeforges/gohlslib/pkg/codecs"
 )
 
 func mpegtsPickLeadingTrack(mpegtsTracks []*mpegts.Track) int {

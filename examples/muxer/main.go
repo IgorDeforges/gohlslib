@@ -9,8 +9,8 @@ import (
 
 	"github.com/bluenviron/mediacommon/pkg/formats/mpegts"
 
-	"github.com/bluenviron/gohlslib"
-	"github.com/bluenviron/gohlslib/pkg/codecs"
+	"github.com/IgorDeforges/gohlslib"
+	"github.com/IgorDeforges/gohlslib/pkg/codecs"
 )
 
 // This example shows how to:
