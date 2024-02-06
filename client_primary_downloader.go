@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bluenviron/gohlslib/pkg/playlist"
+	"github.com/IgorDeforges/gohlslib/pkg/playlist"
 )
 
 func checkSupport(codecs []string) bool {

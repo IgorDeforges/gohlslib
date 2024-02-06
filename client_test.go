@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/bluenviron/gohlslib/pkg/codecs"
+	"github.com/IgorDeforges/gohlslib/pkg/codecs"
 	"github.com/bluenviron/mediacommon/pkg/codecs/h264"
 	"github.com/bluenviron/mediacommon/pkg/codecs/mpeg4audio"
 	"github.com/gin-gonic/gin"

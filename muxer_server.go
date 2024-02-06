@@ -15,10 +15,10 @@ import (
 	"github.com/bluenviron/mediacommon/pkg/codecs/h264"
 	"github.com/bluenviron/mediacommon/pkg/codecs/h265"
 
-	"github.com/bluenviron/gohlslib/pkg/codecparams"
-	"github.com/bluenviron/gohlslib/pkg/codecs"
-	"github.com/bluenviron/gohlslib/pkg/playlist"
-	"github.com/bluenviron/gohlslib/pkg/storage"
+	"github.com/IgorDeforges/gohlslib/pkg/codecparams"
+	"github.com/IgorDeforges/gohlslib/pkg/codecs"
+	"github.com/IgorDeforges/gohlslib/pkg/playlist"
+	"github.com/IgorDeforges/gohlslib/pkg/storage"
 	"github.com/bluenviron/mediacommon/pkg/formats/fmp4"
 )
 

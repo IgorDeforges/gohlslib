@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/bluenviron/gohlslib/pkg/codecs"
+	"github.com/IgorDeforges/gohlslib/pkg/codecs"
 )
 
 type mpegtsSample struct {
