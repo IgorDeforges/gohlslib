@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/bluenviron/gohlslib/pkg/playlist"
+	"github.com/IgorDeforges/gohlslib/pkg/playlist"
 )
 
 func segmentName(prefix string, id uint64, mp4 bool) string {

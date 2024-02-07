@@ -6,8 +6,8 @@ import (
 	"io"
 	"time"
 
-	"github.com/bluenviron/gohlslib/pkg/playlist"
-	"github.com/bluenviron/gohlslib/pkg/storage"
+	"github.com/IgorDeforges/gohlslib/pkg/playlist"
+	"github.com/IgorDeforges/gohlslib/pkg/storage"
 
 	"github.com/bluenviron/mediacommon/pkg/codecs/h264"
 	"github.com/bluenviron/mediacommon/pkg/formats/mpegts"
