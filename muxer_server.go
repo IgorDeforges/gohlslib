@@ -289,7 +289,7 @@ func generateMediaPlaylistFMP4(
 	s *muxerServer,
 ) ([]byte, error) {
     s.addInitialGapSegments(s.targetSegmentDuration)
-	targetDuration := targetDuration(segments)
+	targetDuration := int(math.Round(s.targetSegmentDuration.Seconds())) // targetDuration(s.segments)
 	skipBoundary := time.Duration(targetDuration) * 6 * time.Second
 
 	pl := &playlist.Media{
@@ -871,11 +871,11 @@ func (s *muxerServer) updateInProgressSegment(segment muxerSegment) {
 
 func (s *muxerServer) addInitialGapSegments(segmentDuration time.Duration) {
 	// add initial gaps, required by iOS LL-HLS
-	if s.variant == MuxerVariantLowLatency && len(s.segments) == 0 {
+	/*if s.variant == MuxerVariantLowLatency && len(s.segments) == 0 {
 		for i := 0; i < 7; i++ {
 			s.segments = append(s.segments, &muxerGap{
 				duration: segmentDuration,
 			})
 		}
-	}
+	}*/
 }
